@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Móviles GLP</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#e8e8e8;min-height:100vh}
+.app{display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:#1a3a5c;color:white;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.topbar h1{font-size:16px;font-weight:600}
+.refresh-btn{background:#2a5f9e;border:none;border-radius:6px;color:white;padding:8px 14px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:600}
+.refresh-btn:active{transform:scale(0.95)}
+.ultimo{text-align:center;font-size:11px;color:#888;padding:6px;background:#f0f0f0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px}
+.panel{background:white;border-radius:10px;overflow:hidden;border:1px solid #e0e0e0}
+.panel-header{padding:10px 14px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+.cnt{font-size:11px;font-weight:600;border-radius:12px;padding:2px 8px}
+.op-header{background:#dcfce7;color:#14532d}
+.op-cnt{background:#16a34a;color:white}
+.mn-header{background:#fee2e2;color:#7f1d1d}
+.mn-cnt{background:#dc2626;color:white}
+.lista{padding:8px;display:flex;flex-wrap:wrap;gap:6px}
+.movil{border-radius:6px;padding:7px 10px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px}
+.movil-op{background:#f0fdf4;color:#14532d;border:1px solid #bbf7d0}
+.movil-mn{background:#fef2f2;color:#7f1d1d;border:1px solid #fecaca}
+.vacio{text-align:center;color:#bbb;font-size:12px;padding:16px;font-style:italic;width:100%}
+.loading{text-align:center;color:#888;font-size:13px;padding:20px;width:100%}
+.error-msg{text-align:center;color:#dc2626;font-size:12px;padding:16px;width:100%}
+@media(max-width:420px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <h1>🚗 Móviles GLP</h1>
+    <button class="refresh-btn" onclick="cargar()">↻ Actualizar</button>
+  </div>
+  <div class="ultimo" id="ultimo">Cargando...</div>
+  <div class="grid">
+    <div class="panel">
+      <div class="panel-header op-header">✅ Operativos<span class="cnt op-cnt" id="cntOp">0</span></div>
+      <div class="lista" id="listaOp"><div class="loading">Cargando...</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header mn-header">🔧 Mantenimiento<span class="cnt mn-cnt" id="cntMn">0</span></div>
+      <div class="lista" id="listaMn"><div class="loading">Cargando...</div></div>
+    </div>
+  </div>
+</div>
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbxfTfFA4eSJlyw99PXOkR3uWFE4ile6m3N1CBoAxyy9MM72F9fJX7PZ66wsccSez0ZIQA/exec';
+async function cargar(){
+  document.getElementById('ultimo').textContent = 'Actualizando...';
+  try {
+    const r = await fetch(API);
+    const d = await r.json();
+    const op = d.operativos || [];
+    const mn = d.mantenimiento || [];
+    document.getElementById('cntOp').textContent = op.length;
+    document.getElementById('cntMn').textContent = mn.length;
+    document.getElementById('listaOp').innerHTML = op.length ? op.map(m=>`<div class="movil movil-op">🚗 ${m}</div>`).join('') : '<div class="vacio">Sin móviles registrados</div>';
+    document.getElementById('listaMn').innerHTML = mn.length ? mn.map(m=>`<div class="movil movil-mn">🔧 ${m}</div>`).join('') : '<div class="vacio">Sin móviles en mantenimiento</div>';
+    document.getElementById('ultimo').textContent = `Última actualización: ${new Date().toLocaleTimeString('es-AR')}`;
+  } catch(e) {
+    document.getElementById('listaOp').innerHTML = '<div class="error-msg">Error al cargar datos</div>';
+    document.getElementById('listaMn').innerHTML = '<div class="error-msg">Error al cargar datos</div>';
+    document.getElementById('ultimo').textContent = 'Error de conexión';
+  }
+}
+cargar();
+setInterval(cargar, 60000);
+</script>
+</body>
+</html>
